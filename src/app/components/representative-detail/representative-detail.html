@@ -1,0 +1,341 @@
+<div class="detail-container">
+  @if (rep()) {
+    <button class="back-btn" (click)="goBack()">← Back</button>
+
+    <div class="rep-header">
+      @if (congressData() && congressData().imageUrl) {
+        <img [src]="congressData().imageUrl" [alt]="rep().name" class="rep-photo" />
+      } @else if (rep().image) {
+        <img [src]="rep().image" [alt]="rep().name" class="rep-photo" />
+      } @else {
+        <div class="rep-photo-placeholder">
+          {{ rep().name | slice: 0 : 1 }}
+        </div>
+      }
+      <div class="rep-header-info">
+        <h1>{{ rep().name }}</h1>
+        <p class="rep-role">{{ rep().role }}</p>
+        <p class="rep-jurisdiction">{{ rep().jurisdiction }}</p>
+        <span
+          class="party-badge"
+          [class.dem]="rep().party === 'Democratic'"
+          [class.rep]="rep().party === 'Republican'"
+        >
+          {{ rep().party }}
+        </span>
+        @if (congressData() && congressData().firstElected) {
+          <p class="rep-meta">
+            In office since {{ congressData().firstElected }} ({{ congressData().yearsInOffice }}
+            years)
+          </p>
+        } @else if (summary() && summary().time_in_office) {
+          <p class="rep-meta">{{ summary().time_in_office }}</p>
+        }
+        @if (summary() && summary().background?.age) {
+          <p class="rep-meta">Age {{ summary().background.age }}</p>
+        }
+      </div>
+    </div>
+
+    @if (congressData() && congressData().found) {
+      <div class="quick-stats">
+        <div class="stat-item">
+          <div class="stat-val">{{ congressData().yearsInOffice }}</div>
+          <div class="stat-lbl">Years in office</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">{{ congressData().sponsoredCount }}</div>
+          <div class="stat-lbl">Bills sponsored</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">{{ congressData().cosponsoredCount }}</div>
+          <div class="stat-lbl">Bills cosponsored</div>
+        </div>
+      </div>
+    }
+
+    <div class="detail-tabs">
+      <button class="tab-btn" (click)="scrollTo('background')">Background</button>
+      <button class="tab-btn" (click)="scrollTo('platform')">Platform</button>
+      <button class="tab-btn" (click)="scrollTo('money')">Money</button>
+      <button class="tab-btn" (click)="scrollTo('votes')">Voting Record</button>
+      <button class="tab-btn" (click)="scrollTo('news')">News & Social</button>
+    </div>
+
+    @if (summaryLoading()) {
+      <div class="tab-content">
+        <div class="detail-card skeleton-card">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+        <div class="detail-card skeleton-card">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
+        </div>
+        <div class="detail-card skeleton-card">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+      </div>
+    }
+
+    @if (summaryError()) {
+      <div class="summary-error">
+        <p>{{ summaryError() }}</p>
+      </div>
+    }
+
+    @if (summary() && !summaryLoading()) {
+      <div class="tab-content">
+        <div id="background" class="section-anchor">
+          <div class="section-label">Background</div>
+
+          <div class="detail-card">
+            <h3>Personal</h3>
+            <div class="info-row">
+              <span class="info-label">Birthplace</span>
+              <span class="info-value">{{ summary().background?.birthplace }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Family</span>
+              <span class="info-value">{{ summary().background?.family }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Military</span>
+              <span class="info-value">{{ summary().background?.military_service }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Criminal history</span>
+              <span class="info-value">{{ summary().background?.criminal_history }}</span>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <h3>Education</h3>
+            @for (edu of asArray(summary().background?.education); track edu) {
+              <div class="list-row">{{ edu }}</div>
+            }
+          </div>
+
+          <div class="detail-card">
+            <h3>Career Before Office</h3>
+            @for (job of asArray(summary().background?.career_before_office); track job) {
+              <div class="list-row">{{ job }}</div>
+            }
+          </div>
+
+          @if (summary().notable?.achievements?.length) {
+            <div class="detail-card">
+              <h3>Notable Achievements</h3>
+              @for (item of summary().notable.achievements; track item) {
+                <div class="list-row">✓ {{ item }}</div>
+              }
+            </div>
+          }
+
+          @if (summary().notable?.controversies?.length) {
+            <div class="detail-card">
+              <h3>Controversies</h3>
+              @for (item of summary().notable.controversies; track item) {
+                <div class="list-row controversy">⚠ {{ item }}</div>
+              }
+            </div>
+          }
+
+          <div class="detail-card">
+            <h3>Contact</h3>
+            @for (office of rep().offices; track office.address) {
+              <div class="office-row">
+                <div class="office-name">{{ office.name }}</div>
+                @if (office.phone !== 'N/A') {
+                  <p class="office-detail">📞 {{ office.phone }}</p>
+                }
+                @if (office.address !== 'N/A') {
+                  <p class="office-detail">📍 {{ office.address }}</p>
+                }
+              </div>
+            }
+            @if (rep().email && rep().email !== 'N/A') {
+              <div class="office-row">
+                <a [href]="rep().email" target="_blank" class="contact-link"> ✉️ Contact Form </a>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div id="platform" class="section-anchor">
+          <div class="section-label">Platform</div>
+
+          <div class="detail-card">
+            <h3>Platform Summary</h3>
+            <p class="platform-summary">{{ summary().platform?.summary }}</p>
+          </div>
+
+          <div class="detail-card">
+            <h3>Issue Positions</h3>
+            @for (
+              issue of [
+                ['Economy', summary().platform?.economy],
+                ['Healthcare', summary().platform?.healthcare],
+                ['Energy', summary().platform?.energy],
+                ['Gun Policy', summary().platform?.gun_policy],
+                ['Abortion', summary().platform?.abortion],
+                ['Immigration', summary().platform?.immigration],
+                ['Foreign Policy', summary().platform?.foreign_policy],
+              ];
+              track issue[0]
+            ) {
+              <div class="issue-row">
+                <div class="issue-label">{{ issue[0] }}</div>
+                <div class="issue-value">{{ issue[1] }}</div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div id="money" class="section-anchor">
+          <div class="section-label">Money</div>
+
+          <div class="detail-card coming-soon-card">
+            <h3>💰 Campaign Finance & Major Donors</h3>
+            <p class="coming-soon">Donor data coming soon via Capitol Trace</p>
+          </div>
+
+          <div class="detail-card coming-soon-card">
+            <h3>📈 Stock Activity</h3>
+            <p class="coming-soon">Stock trades coming soon via Capitol Trace</p>
+          </div>
+
+          <div class="detail-card coming-soon-card">
+            <h3>💵 Net Worth</h3>
+            <p class="coming-soon">Net worth tracking coming soon</p>
+          </div>
+        </div>
+
+        <div id="votes" class="section-anchor">
+          <div class="section-label">Voting Record</div>
+
+          @if (congressData() && congressData().found) {
+            <div class="detail-card">
+              <h3>🗳️ Voting Record</h3>
+              <p class="voting-note">
+                Voting record data is sourced from official government records. For the most current
+                and complete voting history, view the full record on GovTrack.
+              </p>
+              <div class="external-links">
+                <a [href]="congressData().govtrackUrl" target="_blank" class="external-btn">
+                  View Full Voting Record on GovTrack →
+                </a>
+                <a
+                  [href]="congressData().congressUrl"
+                  target="_blank"
+                  class="external-btn secondary"
+                >
+                  View on Congress.gov →
+                </a>
+              </div>
+              <div class="bill-stats">
+                <div class="bill-stat">
+                  <span class="bill-count">{{ congressData().sponsoredCount }}</span>
+                  <span class="bill-lbl">Bills Sponsored</span>
+                </div>
+                <div class="bill-stat">
+                  <span class="bill-count">{{ congressData().cosponsoredCount }}</span>
+                  <span class="bill-lbl">Bills Cosponsored</span>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="detail-card coming-soon-card">
+              <h3>🗳️ Voting Record</h3>
+              <p class="coming-soon">Voting record available for federal legislators only.</p>
+            </div>
+          }
+        </div>
+
+        <div id="news" class="section-anchor">
+          <div class="section-label">News & Social</div>
+
+          @if (summary() && summary().social_media) {
+            <div class="detail-card">
+              <h3>Social Media</h3>
+              @if (summary().social_media.twitter !== 'Not available') {
+                <a
+                  class="social-link"
+                  [href]="'https://twitter.com/' + summary().social_media.twitter.replace('@', '')"
+                  target="_blank"
+                >
+                  𝕏 {{ summary().social_media.twitter }}
+                </a>
+              }
+              @if (summary().social_media.facebook !== 'Not available') {
+                <a class="social-link" [href]="summary().social_media.facebook" target="_blank">
+                  Facebook
+                </a>
+              }
+              @if (summary().social_media.instagram !== 'Not available') {
+                <a
+                  class="social-link"
+                  [href]="
+                    'https://instagram.com/' + summary().social_media.instagram.replace('@', '')
+                  "
+                  target="_blank"
+                >
+                  Instagram {{ summary().social_media.instagram }}
+                </a>
+              }
+              @if (summary().social_media.website !== 'Not available') {
+                <a class="social-link" [href]="summary().social_media.website" target="_blank">
+                  🌐 Official Website
+                </a>
+              }
+            </div>
+          }
+
+          <div class="detail-card">
+            <h3>📰 Recent News</h3>
+
+            @if (newsLoading()) {
+              <div class="skeleton skeleton-line" style="margin-bottom: 8px"></div>
+              <div class="skeleton skeleton-line short" style="margin-bottom: 8px"></div>
+              <div class="skeleton skeleton-line" style="margin-bottom: 8px"></div>
+            }
+
+            @if (!newsLoading() && news().length === 0) {
+              <p class="coming-soon">No recent news found.</p>
+            }
+
+            @for (article of news(); track article.url) {
+              <a [href]="article.url" target="_blank" class="news-row">
+                <div
+                  class="news-lean-badge"
+                  [class.lean-left]="article.lean === 'left'"
+                  [class.lean-center]="article.lean === 'center'"
+                  [class.lean-right]="article.lean === 'right'"
+                >
+                  {{ article.source }}
+                </div>
+                <div class="news-content">
+                  <div class="news-headline">{{ article.headline }}</div>
+                  <div class="news-summary">{{ article.summary }}</div>
+                </div>
+                <div class="news-arrow">→</div>
+              </a>
+            }
+
+            <p class="news-disclaimer">
+              News sources may carry editorial bias. Lean labels reflect general source orientation.
+              Always read primary sources and form your own conclusions.
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

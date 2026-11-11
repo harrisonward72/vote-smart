@@ -1,0 +1,252 @@
+<div class="detail-container">
+  @if (candidate()) {
+    <button class="back-btn" (click)="goBack()">← Back</button>
+
+    <div class="rep-header">
+      <div
+        class="rep-photo-placeholder"
+        [class.av-dem]="candidate().party === 'Democratic'"
+        [class.av-rep]="candidate().party === 'Republican'"
+        [class.av-ind]="candidate().party !== 'Democratic' && candidate().party !== 'Republican'"
+      >
+        {{ candidate().name | slice: 0 : 1 }}
+      </div>
+      <div class="rep-header-info">
+        <h1>{{ candidate().name }}</h1>
+        <p class="rep-role">Candidate</p>
+        <span
+          class="party-badge"
+          [class.dem]="candidate().party === 'Democratic'"
+          [class.rep]="candidate().party === 'Republican'"
+        >
+          {{ candidate().party }}
+        </span>
+        <span class="challenger-badge">{{ candidate().incumbentStatus }}</span>
+      </div>
+    </div>
+
+    <div class="detail-tabs">
+      <button class="tab-btn" (click)="scrollTo('background')">Background</button>
+      <button class="tab-btn" (click)="scrollTo('platform')">Platform</button>
+      <button class="tab-btn" (click)="scrollTo('funding')">Funding</button>
+      <button class="tab-btn" (click)="scrollTo('news')">News & Social</button>
+    </div>
+
+    @if (summaryLoading()) {
+      <div class="tab-content">
+        <div class="detail-card skeleton-card">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+        <div class="detail-card skeleton-card">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
+        </div>
+      </div>
+    }
+
+    @if (summaryError()) {
+      <div class="summary-error">
+        <p>{{ summaryError() }}</p>
+      </div>
+    }
+
+    @if (summary() && !summaryLoading()) {
+      <div class="tab-content">
+        <div id="background" class="section-anchor">
+          <div class="section-label">Background</div>
+
+          <div class="detail-card">
+            <h3>Personal</h3>
+            <div class="info-row">
+              <span class="info-label">Birthplace</span>
+              <span class="info-value">{{ summary().background?.birthplace }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Family</span>
+              <span class="info-value">{{ summary().background?.family }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Military</span>
+              <span class="info-value">{{ summary().background?.military_service }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Criminal history</span>
+              <span class="info-value">{{ summary().background?.criminal_history }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Prior political experience</span>
+              <span class="info-value">{{ summary().background?.political_experience }}</span>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <h3>Education</h3>
+            @for (edu of asArray(summary().background?.education); track edu) {
+              <div class="list-row">{{ edu }}</div>
+            }
+          </div>
+
+          <div class="detail-card">
+            <h3>Career</h3>
+            @for (job of asArray(summary().background?.career); track job) {
+              <div class="list-row">{{ job }}</div>
+            }
+          </div>
+
+          @if (summary().notable?.endorsements?.length) {
+            <div class="detail-card">
+              <h3>Endorsements</h3>
+              @for (item of summary().notable.endorsements; track item) {
+                <div class="list-row">✓ {{ item }}</div>
+              }
+            </div>
+          }
+
+          @if (summary().notable?.controversies?.length) {
+            <div class="detail-card">
+              <h3>Controversies</h3>
+              @for (item of summary().notable.controversies; track item) {
+                <div class="list-row controversy">⚠ {{ item }}</div>
+              }
+            </div>
+          }
+        </div>
+
+        <div id="platform" class="section-anchor">
+          <div class="section-label">Platform</div>
+
+          <div class="detail-card">
+            <h3>Campaign Summary</h3>
+            <p class="platform-summary">{{ summary().campaign?.summary }}</p>
+          </div>
+
+          @if (summary().campaign?.key_issues?.length) {
+            <div class="detail-card">
+              <h3>Key Issues</h3>
+              @for (issue of summary().campaign.key_issues; track issue) {
+                <div class="list-row">• {{ issue }}</div>
+              }
+            </div>
+          }
+
+          <div class="detail-card">
+            <h3>Issue Positions</h3>
+            @for (
+              issue of [
+                ['Economy', summary().campaign?.economy],
+                ['Healthcare', summary().campaign?.healthcare],
+                ['Energy', summary().campaign?.energy],
+                ['Gun Policy', summary().campaign?.gun_policy],
+                ['Abortion', summary().campaign?.abortion],
+                ['Immigration', summary().campaign?.immigration],
+                ['Foreign Policy', summary().campaign?.foreign_policy],
+              ];
+              track issue[0]
+            ) {
+              <div class="issue-row">
+                <div class="issue-label">{{ issue[0] }}</div>
+                <div class="issue-value">{{ issue[1] }}</div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div id="funding" class="section-anchor">
+          <div class="section-label">Funding</div>
+
+          <div class="detail-card">
+            <h3>💰 Campaign Funding</h3>
+            @if (summary().funding?.total_raised !== 'Not available') {
+              <div class="info-row">
+                <span class="info-label">Total raised</span>
+                <span class="info-value">{{ summary().funding?.total_raised }}</span>
+              </div>
+            }
+            <div class="info-row">
+              <span class="info-label">Funding summary</span>
+              <span class="info-value">{{ summary().funding?.funding_summary }}</span>
+            </div>
+            @if (summary().funding?.top_donors?.length) {
+              <div style="margin-top: 12px">
+                <div class="info-label" style="margin-bottom: 8px">Top donors</div>
+                @for (donor of summary().funding.top_donors; track donor) {
+                  <div class="list-row">{{ donor }}</div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div id="news" class="section-anchor">
+          <div class="section-label">News & Social</div>
+
+          @if (summary().social_media) {
+            <div class="detail-card">
+              <h3>Social Media</h3>
+              @if (summary().social_media.twitter !== 'Not available') {
+                <a
+                  class="social-link"
+                  [href]="'https://twitter.com/' + summary().social_media.twitter.replace('@', '')"
+                  target="_blank"
+                >
+                  𝕏 {{ summary().social_media.twitter }}
+                </a>
+              }
+              @if (summary().social_media.facebook !== 'Not available') {
+                <a class="social-link" [href]="summary().social_media.facebook" target="_blank">
+                  Facebook
+                </a>
+              }
+              @if (summary().social_media.website !== 'Not available') {
+                <a class="social-link" [href]="summary().social_media.website" target="_blank">
+                  🌐 Campaign Website
+                </a>
+              }
+            </div>
+          }
+
+          <div class="detail-card">
+            <h3>📰 Recent News</h3>
+
+            @if (newsLoading()) {
+              <div class="skeleton skeleton-line" style="margin-bottom: 8px"></div>
+              <div class="skeleton skeleton-line short" style="margin-bottom: 8px"></div>
+              <div class="skeleton skeleton-line"></div>
+            }
+
+            @if (!newsLoading() && news().length === 0) {
+              <p class="coming-soon">No recent news found.</p>
+            }
+
+            @for (article of news(); track article.url) {
+              <a [href]="article.url" target="_blank" class="news-row">
+                <div
+                  class="news-lean-badge"
+                  [class.lean-left]="article.lean === 'left'"
+                  [class.lean-center]="article.lean === 'center'"
+                  [class.lean-right]="article.lean === 'right'"
+                >
+                  {{ article.source }}
+                </div>
+                <div class="news-content">
+                  <div class="news-headline">{{ article.headline }}</div>
+                  <div class="news-summary">{{ article.summary }}</div>
+                </div>
+                <div class="news-arrow">→</div>
+              </a>
+            }
+
+            <p class="news-disclaimer">
+              News sources may carry editorial bias. Lean labels reflect general source orientation.
+              Always read primary sources.
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

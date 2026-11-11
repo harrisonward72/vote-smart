@@ -1,0 +1,179 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h2>Results for: {{ address }}</h2>
+  </div>
+
+  <div class="tabs">
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'representatives'"
+      (click)="setTab('representatives')"
+    >
+      Your Representatives
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'election'" (click)="setTab('election')">
+      My Next Election
+    </button>
+  </div>
+
+  @if (loading) {
+    <div class="loading">
+      <p>Loading your representatives...</p>
+    </div>
+  }
+
+  @if (error) {
+    <div class="error">
+      <p>{{ error }}</p>
+    </div>
+  }
+
+  @if (civicData() && !loading) {
+    @if (activeTab === 'representatives') {
+      <div class="rep-list">
+        <div class="race-group">
+          <div class="race-header">
+            <span class="race-office">Federal</span>
+          </div>
+          @for (rep of civicData().representatives; track rep.name) {
+            @if (rep.jurisdiction === 'United States') {
+              <div class="rep-card" (click)="goToRep(rep)">
+                @if (rep.image) {
+                  <img [src]="rep.image" [alt]="rep.name" class="rep-avatar-img" />
+                } @else {
+                  <div
+                    class="rep-avatar"
+                    [class.av-dem]="rep.party === 'Democratic'"
+                    [class.av-rep]="rep.party === 'Republican'"
+                    [class.av-ind]="rep.party !== 'Democratic' && rep.party !== 'Republican'"
+                  >
+                    {{ rep.name | slice: 0 : 1 }}
+                  </div>
+                }
+                <div class="rep-info">
+                  <h4>{{ rep.name }}</h4>
+                  <p>{{ rep.role }}</p>
+                  <span
+                    class="party-badge"
+                    [class.dem]="rep.party === 'Democratic'"
+                    [class.rep]="rep.party === 'Republican'"
+                  >
+                    {{ rep.party }}
+                  </span>
+                </div>
+                <div class="rep-arrow">→</div>
+              </div>
+            }
+          }
+        </div>
+
+        <div class="race-group">
+          <div class="race-header">
+            <span class="race-office">State</span>
+          </div>
+          @for (rep of civicData().representatives; track rep.name) {
+            @if (rep.jurisdiction !== 'United States') {
+              <div class="rep-card" (click)="goToRep(rep)">
+                @if (rep.image) {
+                  <img [src]="rep.image" [alt]="rep.name" class="rep-avatar-img" />
+                } @else {
+                  <div
+                    class="rep-avatar"
+                    [class.av-dem]="rep.party === 'Democratic'"
+                    [class.av-rep]="rep.party === 'Republican'"
+                    [class.av-ind]="rep.party !== 'Democratic' && rep.party !== 'Republican'"
+                  >
+                    {{ rep.name | slice: 0 : 1 }}
+                  </div>
+                }
+                <div class="rep-info">
+                  <h4>{{ rep.name }}</h4>
+                  <p>{{ rep.role }}</p>
+                  <span
+                    class="party-badge"
+                    [class.dem]="rep.party === 'Democratic'"
+                    [class.rep]="rep.party === 'Republican'"
+                  >
+                    {{ rep.party }}
+                  </span>
+                </div>
+                <div class="rep-arrow">→</div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+    @if (activeTab === 'election') {
+      @if (civicData().upcomingElection) {
+        <div class="election-header-card">
+          <div class="election-title">{{ civicData().upcomingElection.electionName }}</div>
+          <div class="election-date">{{ civicData().upcomingElection.electionDate }}</div>
+          <div class="election-reg">
+            Registration Deadline: {{ civicData().upcomingElection.registrationDeadline }}
+          </div>
+        </div>
+
+        <div class="location-cards">
+          <div class="location-card">
+            <h4>Polling Location</h4>
+            <p class="loc-name">{{ civicData().upcomingElection.pollingLocation.name }}</p>
+            <p class="loc-address">{{ civicData().upcomingElection.pollingLocation.address }}</p>
+            <p class="loc-hours">{{ civicData().upcomingElection.pollingLocation.hours }}</p>
+          </div>
+          <div class="location-card">
+            <h4>Early Voting</h4>
+            <p class="loc-name">{{ civicData().upcomingElection.earlyVotingLocation.name }}</p>
+            <p class="loc-address">
+              {{ civicData().upcomingElection.earlyVotingLocation.address }}
+            </p>
+            <p class="loc-hours">{{ civicData().upcomingElection.earlyVotingLocation.hours }}</p>
+          </div>
+        </div>
+
+        <div class="races-selection">
+          <h3>Who's On Your Ballot</h3>
+
+          @for (race of civicData().upcomingElection.races; track race.office) {
+            <div class="race-group">
+              <div class="race-header">
+                <span class="race-office">{{ race.office }}</span>
+                <span class="race-level">{{ race.level }}</span>
+              </div>
+              @for (candidate of race.candidates; track candidate.name) {
+                <div class="rep-card" (click)="goToCandidate(candidate)">
+                  @if (candidate.image) {
+                    <img [src]="candidate.image" [alt]="candidate.name" class="rep-avatar-img" />
+                  } @else {
+                    <div
+                      class="rep-avatar"
+                      [class.av-dem]="candidate.party === 'Democratic'"
+                      [class.av-rep]="candidate.party === 'Republican'"
+                      [class.av-ind]="
+                        candidate.party !== 'Democratic' && candidate.party !== 'Republican'
+                      "
+                    >
+                      {{ candidate.name | slice: 0 : 1 }}
+                    </div>
+                  }
+                  <div class="rep-info">
+                    <h4>{{ candidate.name }}</h4>
+                    <p>{{ candidate.incumbentStatus }}</p>
+                    <span
+                      class="party-badge"
+                      [class.dem]="candidate.party === 'Democratic'"
+                      [class.rep]="candidate.party === 'Republican'"
+                    >
+                      {{ candidate.party }}
+                    </span>
+                  </div>
+                  <div class="rep-arrow">→</div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+</div>
